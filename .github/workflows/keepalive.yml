@@ -1,0 +1,24 @@
+name: Keep-alive Render (prometeus-server)
+
+# BACKUP del self-ping del server (v1.4.1). Render FREE duerme el servicio
+# tras 15 min sin trafico; el cold start (30-60 s) excede el timeout del
+# rele de la app TV. Este ping cada 10 min lo mantiene despierto.
+# Repo PUBLICO = Actions sin limite de minutos.
+# NOTA: GitHub desactiva schedules tras 60 dias sin commits — un push
+# cualquiera lo reactiva.
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping prometeus-server health
+        run: |
+          for url in "https://prometeus-server.onrender.com/v1/ppcine/health" "https://prometeus-server.onrender.com/v1/health"; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 60 "$url" || echo FAIL)
+            echo "$url -> $code"
+          done
